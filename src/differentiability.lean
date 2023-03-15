@@ -7,8 +7,11 @@ import tactic.tidy
 import tactic.with_local_reducibility
 import tactic.show_term
 import analysis.calculus.fderiv
+import analysis.special_functions.exp_deriv
+import analysis.special_functions.trigonometric.deriv
+import analysis.special_functions.log.deriv
 /-!
-# Tactics for ???TODO
+# Tactics for differentiability
 
 ### `differentiability` tactic
 
@@ -68,22 +71,16 @@ Attributes used by continuity:
  continuous.zpow,
  continuous_zsmul,
  continuous_zpow,
- continuous.neg,
  continuous.inv,
  continuous_finset_sum,
  continuous_finset_prod,
  continuous_multiset_sum,
  continuous_multiset_prod,
  continuous.nsmul,
- continuous.pow,
  continuous_nsmul,
- continuous_pow,
- continuous.add,
- continuous.mul,
  continuous_map.continuous_set_coe,
  continuous_map_class.map_continuous,
  continuous.vadd,
- continuous.smul,
  continuous.const_vadd,
  continuous.const_smul,
  uniform_equiv.continuous_symm,
@@ -106,7 +103,6 @@ Attributes used by continuity:
  continuous_update,
  continuous_apply_apply,
  continuous_apply,
- continuous_pi,
  continuous_quot_lift,
  continuous_quot_mk,
  continuous.cod_restrict,
@@ -119,14 +115,9 @@ Attributes used by continuity:
  continuous.prod.mk_left,
  continuous.prod.mk,
  continuous.prod_mk,
- continuous_snd,
- continuous_fst,
  continuous_top,
  continuous_bot,
- continuous_induced_dom,
- continuous_id',
- continuous_const,
- continuous_id]
+ continuous_induced_dom,]
 
 -/
 @[user_attribute]
@@ -134,9 +125,8 @@ meta def differentiability : user_attribute :=
 { name := `differentiability,
   descr := "lemmas usable to prove differentiable" }
 
--- Mark some continuity lemmas already defined in `topology.basic`
+-- Mark some continuity lemmas already defined in `algebra.calculus.fderiv`
 attribute [differentiability]
-  -- differentiable.comp
   differentiable_id
   differentiable_id'
   differentiable_const
@@ -149,10 +139,21 @@ attribute [differentiability]
   differentiable.prod
   differentiable.fst
   differentiable.snd
-  -- differentiable.sum
-  -- differentiable_pi
-
-
+  differentiable.comp
+  differentiable.sum
+  differentiable_pi
+  differentiable.exp
+  differentiable.cexp
+  differentiable.log
+  differentiable.sin
+  differentiable.cos
+  differentiable.sinh
+  differentiable.cosh
+  differentiable.csin
+  differentiable.ccos
+  differentiable.csinh
+  differentiable.ccosh
+  
 namespace tactic
 /--
 Tactic to apply `differentiable.comp` when appropriate.
@@ -192,12 +193,12 @@ do t ← tactic.target,
 /-- List of tactics used by `differentiability` internally. -/
 meta def differentiability_tactics (md : transparency := reducible) : list (tactic string) :=
 [
-  -- This first line is from the measurability tactic
+  -- This first part is from the measurability tactic
   propositional_goal >> tactic.interactive.apply_assumption none {use_exfalso := ff}
                         >> pure "apply_assumption {use_exfalso := ff}",
   goal_is_not_differentiable >> 
     intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
-  apply_rules [] [``differentiable] 50 { md := md }
+  apply_rules [] [``differentiability] 50 { md := md }
                         >> pure "apply_rules with differentiability",
   apply_differentiable.comp >> pure "refine differentiable.comp _ _"
 ]
@@ -223,15 +224,6 @@ meta def differentiability' : tactic unit := differentiability none none {}
 `differentiable` solves goals of the form `differentiable f` by applying lemmas tagged with the
 `differentiable` user attribute.
 
-```
-example {X Y : Type*} [topological_space X] [topological_space Y]
-  (f₁ f₂ : X → Y) (hf₁ : continuous f₁) (hf₂ : continuous f₂)
-  (g : Y → ℝ) (hg : continuous g) : continuous (λ x, (max (g (f₁ x)) (g (f₂ x))) + 1) :=
-by continuity
-```
-will discharge the goal, generating a proof term like
-`((continuous.comp hg hf₁).max (continuous.comp hg hf₂)).add continuous_const`
-
 You can also use `differentiability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions
 when attempting to match lemmas with the goal.
@@ -246,30 +238,3 @@ add_tactic_doc
 
 end interactive
 end tactic
-
-example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
-  : differentiable ℝ (f ∘ g) :=
-begin
-  differentiability,
-end
-
-
-example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
-  : differentiable ℝ (λ x, f (g x)) :=
-begin
-  differentiability,
-end
-
-
-example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
-  : differentiable ℝ (λ x, f x + g x) :=
-begin
-  differentiability,
-end
-
-example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
-  (hh : differentiable ℝ h) : differentiable ℝ (λ x, - (h x) + ((f ∘ g) x) ^ 3) :=
-begin
-  differentiability?,
-  sorry,
-end
