@@ -125,12 +125,14 @@ meta def differentiability : user_attribute :=
 { name := `differentiability,
   descr := "lemmas usable to prove differentiable" }
 
--- Mark some continuity lemmas already defined in `algebra.calculus.fderiv`
+-- Mark some differentiability lemmas already defined in `algebra.calculus.fderiv`
+-- and `analysis.special_functions. ...`
 attribute [differentiability]
   differentiable_id
   differentiable_id'
   differentiable_const
   differentiable.mul
+  differentiable.div
   -- Need some division something. ?
   differentiable.smul
   differentiable.pow -- for natural powers
@@ -139,7 +141,6 @@ attribute [differentiability]
   differentiable.prod
   differentiable.fst
   differentiable.snd
-  differentiable.comp
   differentiable.sum
   differentiable_pi
   differentiable.exp
@@ -153,6 +154,7 @@ attribute [differentiability]
   differentiable.ccos
   differentiable.csinh
   differentiable.ccosh
+  -- differentiable.comp
   
 namespace tactic
 /--
