@@ -1,9 +1,6 @@
 /-
-Copyright (c) 2020 Reid Barton. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton
-
--- TODO IMPORTANT HOW TO MODIFY COPYRIGHT NOTICE TO GIVE ORIGINAL CREDIT
+This tactic is mostly a copy of the continuity tactic by Reid Barton,
+with some modifications from the measurability tactic by Rémy Degenne
 -/
 import tactic.auto_cases
 import tactic.tidy
@@ -21,7 +18,117 @@ Mark lemmas with `@[differentiability]` to add them to the set of lemmas
 used by `differentiability`.
 -/
 
-/-- User attribute used to mark tactics used by `differentiability`. -/
+/-- User attribute used to mark tactics used by `differentiability`. 
+Attributes used by continuity:
+[continuous_multilinear_map.coe_continuous,
+ linear_isometry.continuous,
+ semilinear_isometry_class.continuous,
+ continuous_algebra_map,
+ affine_map.homothety_continuous,
+ affine_map.line_map_continuous,
+ path.truncate_const_continuous_family,
+ path.truncate_continuous_family,
+ path.continuous_trans,
+ continuous.path_trans,
+ path.trans_continuous_family,
+ path.continuous_uncurry_extend_of_continuous_family,
+ path.continuous_symm,
+ path.symm_continuous_family,
+ path.continuous_extend,
+ continuous.path_eval,
+ path.continuous,
+ unit_interval.continuous_symm,
+ continuous.Icc_extend',
+ continuous_proj_Icc,
+ continuous_linear_equiv.continuous,
+ continuous_linear_equiv.continuous_inv_fun,
+ continuous_linear_equiv.continuous_to_fun,
+ continuous_linear_map.continuous,
+ continuous.sqrt,
+ real.continuous_sqrt,
+ continuous.edist,
+ ennreal.continuous_pow,
+ continuous_nnnorm,
+ continuous_nnnorm',
+ continuous_norm,
+ continuous_norm',
+ continuous.zpow₀,
+ continuous.div,
+ continuous.inv₀,
+ continuous.div_const,
+ continuous_abs,
+ continuous.star,
+ continuous.dist,
+ continuous_dist,
+ continuous.max,
+ continuous.min,
+ continuous.sub,
+ continuous.div',
+ continuous.zsmul,
+ continuous.zpow,
+ continuous_zsmul,
+ continuous_zpow,
+ continuous.neg,
+ continuous.inv,
+ continuous_finset_sum,
+ continuous_finset_prod,
+ continuous_multiset_sum,
+ continuous_multiset_prod,
+ continuous.nsmul,
+ continuous.pow,
+ continuous_nsmul,
+ continuous_pow,
+ continuous.add,
+ continuous.mul,
+ continuous_map.continuous_set_coe,
+ continuous_map_class.map_continuous,
+ continuous.vadd,
+ continuous.smul,
+ continuous.const_vadd,
+ continuous.const_smul,
+ uniform_equiv.continuous_symm,
+ uniform_equiv.continuous,
+ add_opposite.continuous_op,
+ mul_opposite.continuous_op,
+ add_opposite.continuous_unop,
+ mul_opposite.continuous_unop,
+ homeomorph.continuous_symm,
+ homeomorph.continuous,
+ continuous.connected_components_lift_continuous,
+ connected_components.continuous_coe,
+ continuous_ulift_up,
+ continuous_ulift_down,
+ continuous.sigma_map,
+ continuous_sigma,
+ continuous_sigma_mk,
+ continuous_single,
+ continuous_mul_single,
+ continuous_update,
+ continuous_apply_apply,
+ continuous_apply,
+ continuous_pi,
+ continuous_quot_lift,
+ continuous_quot_mk,
+ continuous.cod_restrict,
+ continuous.subtype_mk,
+ continuous_subtype_val,
+ continuous.sum_map,
+ continuous.sum_elim,
+ continuous_inr,
+ continuous_inl,
+ continuous.prod.mk_left,
+ continuous.prod.mk,
+ continuous.prod_mk,
+ continuous_snd,
+ continuous_fst,
+ continuous_top,
+ continuous_bot,
+ continuous_induced_dom,
+ continuous_id',
+ continuous_const,
+ continuous_id]
+
+-/
 @[user_attribute]
 meta def differentiability : user_attribute :=
 { name := `differentiability,
@@ -69,10 +176,27 @@ meta def apply_differentiable.comp : tactic unit :=
   refine differentiable.comp _ _;
   fail_if_success { exact differentiable_id }]
 
+-- https://github.com/leanprover-community/mathlib/blob/master/src/measure_theory/tactic.lean
+-- https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/differentiability.20tactic
+/--
+We don't want the intros1 tactic to apply to a goal of the form `differentiable f`. 
+This tactic tests the target to see if it matches that form.
+ -/
+meta def goal_is_not_differentiable : tactic unit :=
+do t ← tactic.target,
+  match t with
+  | `(differentiable _ %%f) := failed
+  | _ := skip
+  end
+
 /-- List of tactics used by `differentiability` internally. -/
 meta def differentiability_tactics (md : transparency := reducible) : list (tactic string) :=
 [
-  intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  -- This first line is from the measurability tactic
+  propositional_goal >> tactic.interactive.apply_assumption none {use_exfalso := ff}
+                        >> pure "apply_assumption {use_exfalso := ff}",
+  goal_is_not_differentiable >> 
+    intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   apply_rules [] [``differentiable] 50 { md := md }
                         >> pure "apply_rules with differentiability",
   apply_differentiable.comp >> pure "refine differentiable.comp _ _"
@@ -92,8 +216,8 @@ let md              := if bang.is_some then semireducible else reducible,
     trace_fn        := if trace.is_some then show_term else id in
 trace_fn differentiable_core
 
-/-- Version of `differentiable` for use with auto_param. -/
-meta def differentiable' : tactic unit := differentiability none none {}
+/-- Version of `differentiability` for use with auto_param. -/
+meta def differentiability' : tactic unit := differentiability none none {}
 
 /--
 `differentiable` solves goals of the form `differentiable f` by applying lemmas tagged with the
@@ -121,5 +245,31 @@ add_tactic_doc
   tags := ["lemma application"] }
 
 end interactive
-
 end tactic
+
+example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
+  : differentiable ℝ (f ∘ g) :=
+begin
+  differentiability,
+end
+
+
+example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
+  : differentiable ℝ (λ x, f (g x)) :=
+begin
+  differentiability,
+end
+
+
+example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
+  : differentiable ℝ (λ x, f x + g x) :=
+begin
+  differentiability,
+end
+
+example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
+  (hh : differentiable ℝ h) : differentiable ℝ (λ x, - (h x) + ((f ∘ g) x) ^ 3) :=
+begin
+  differentiability?,
+  sorry,
+end
