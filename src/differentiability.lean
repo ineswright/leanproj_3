@@ -3,7 +3,7 @@ Copyright (c) 2020 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 
-Modified by Ines Wright from continuity to differentiability
+-- TODO IMPORTANT HOW TO MODIFY COPYRIGHT NOTICE TO GIVE ORIGINAL CREDIT
 -/
 import tactic.auto_cases
 import tactic.tidy
@@ -11,9 +11,7 @@ import tactic.with_local_reducibility
 import tactic.show_term
 import analysis.calculus.fderiv
 /-!
-# Tactics for topology
-
-
+# Tactics for ???TODO
 
 ### `differentiability` tactic
 
@@ -31,7 +29,7 @@ meta def differentiability : user_attribute :=
 
 -- Mark some continuity lemmas already defined in `topology.basic`
 attribute [differentiability]
-  differentiable.comp
+  -- differentiable.comp
   differentiable_id
   differentiable_id'
   differentiable_const
@@ -71,7 +69,7 @@ meta def apply_differentiable.comp : tactic unit :=
   refine differentiable.comp _ _;
   fail_if_success { exact differentiable_id }]
 
-/-- List of tactics used by `continuity` internally. -/
+/-- List of tactics used by `differentiability` internally. -/
 meta def differentiability_tactics (md : transparency := reducible) : list (tactic string) :=
 [
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
@@ -84,7 +82,7 @@ namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `continuous f`. `continuity?` reports back the proof term it found.
+Solve goals of the form `differentiability f`. `differentiability?` reports back the proof term it found.
 -/
 meta def differentiability
   (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
@@ -110,11 +108,11 @@ by continuity
 will discharge the goal, generating a proof term like
 `((continuous.comp hg hf₁).max (continuous.comp hg hf₂)).add continuous_const`
 
-You can also use `continuity!`, which applies lemmas with `{ md := semireducible }`.
+You can also use `differentiability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions
 when attempting to match lemmas with the goal.
 
-`continuity?` reports back the proof term it found.
+`differentiability?` reports back the proof term it found.
 -/
 add_tactic_doc
 { name := "differentiability / differentiability'",
