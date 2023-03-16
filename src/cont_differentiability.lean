@@ -30,8 +30,8 @@ meta def cont_differentiability : user_attribute :=
 -- and `analysis.special_functions. ...`
 attribute [cont_differentiability]
   cont_diff_on_id
-  -- cont_diff_on_id'
   cont_diff_on_const
+  cont_diff_on.prod
   cont_diff_on.add
   cont_diff_on.pow
   cont_diff_on.neg
@@ -39,7 +39,6 @@ attribute [cont_differentiability]
   cont_diff_on.fst
   cont_diff_on.snd
   cont_diff_on.smul
-  cont_diff_on.prod
   -- cont_diff_sin
   -- -- Need some division something. ?
   -- differentiable.prod
@@ -50,6 +49,12 @@ attribute [cont_differentiability]
   -- differentiable.log
   -- differentiable.sin
   -- differentiable.cos
+
+@[cont_differentiability] lemma cont_diff_on_id' {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : set E} 
+  {n : ℕ∞} : cont_diff_on 𝕜 n (λ (y : E), y) s :=
+  cont_diff_id.cont_diff_on
+
   
 namespace tactic
 /--
