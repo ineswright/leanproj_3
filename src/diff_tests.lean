@@ -42,10 +42,8 @@ example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable �
 example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) 
   : differentiable ℝ (λ x, (f x, g x) ) := by differentiability
 
--- How to find the missing instance here ?
--- normed_add_comm_group (cau_seq.completion.Cauchy abs)
--- example (f : (ℝ × ℝ) → ℝ) (hf : differentiable ℝ f) : differentiable ℝ (λ x, (f x).1 ) := 
---   by differentiability
+example (f : ℝ → (ℝ × ℝ)) (hf : differentiable ℝ f) : differentiable ℝ (λ x, (f x).1 ) := 
+  by differentiability
 
 example (f : ℝ → ℝ) (hf : differentiable ℝ f) 
   : differentiable ℝ (λ x, real.sin (f x)) := by differentiability

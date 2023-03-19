@@ -137,6 +137,7 @@ attribute [differentiability]
   differentiable.smul
   differentiable.pow -- for natural powers
   differentiable.add
+  differentiable.sub
   differentiable.neg
   differentiable.prod
   differentiable.fst

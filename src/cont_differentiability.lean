@@ -33,12 +33,14 @@ attribute [cont_differentiability]
   cont_diff_on_const
   cont_diff_on.prod
   cont_diff_on.add
+  cont_diff_on.sub
   cont_diff_on.pow
   cont_diff_on.neg
   cont_diff_on.mul
   cont_diff_on.fst
   cont_diff_on.snd
   cont_diff_on.smul
+  -- It can't even find this for some reason ?
   -- cont_diff_sin
   -- -- Need some division something. ?
   -- differentiable.prod

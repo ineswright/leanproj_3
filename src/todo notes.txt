@@ -1,0 +1,4 @@
+- modify differentiability to also do differentiable_at
+- do cont_differentiability in differentiability
+- MAYBE: modify cont_diff to solve things in cont_diff as well as cont_diff_on
+- think about a tactic to calculate derivatives 
