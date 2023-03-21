@@ -5,9 +5,8 @@ import analysis.inner_product_space.pi_L2
 import cont_differentiability
 import differentiability
 
--- HELP: f is a parametrised curve so usually defined with
--- f : [a, b] → ℝⁿ
 example (n : ℕ) : euclidean_space ℝ (fin n) = (fin n → ℝ) := rfl
+example (n : ℕ) : (ℝ → euclidean_space ℝ (fin n)) = (ℝ → (fin n → ℝ)) := rfl
 
 structure regular_curve (n : ℕ) (f : ℝ → euclidean_space ℝ (fin n)) (a b : ℝ) :=
 ( cont_diff := cont_diff_on ℝ ⊤ f (set.Icc a b) )
@@ -18,11 +17,17 @@ structure regular_curve2 (f : ℝ → ℝ × ℝ) (a b : ℝ) : Prop :=
 ( cont_diff : cont_diff_on ℝ ⊤ f (set.Icc a b) )
 ( nonneg_deriv : ∀ t : ℝ, t ∈ set.Icc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
-structure regular_curve3 (f : ℝ → ℝ × ℝ × ℝ) (a b : ℝ) :=
+structure regular_curve3 (f : ℝ → ℝ × ℝ × ℝ) (a b : ℝ) : Prop :=
 ( cont_diff : cont_diff_on ℝ ⊤ f (set.Icc a b) )
 ( nonneg_deriv : ∀ t : ℝ, t ∈ set.Icc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
--- TODO: coercion from regular_curve2 to regular_curve3
+-- example (f : ℝ → euclidean_space ℝ (fin 2)) (a b : ℝ) 
+--   : regular_curve 2 f a b = regular_curve2 f a b := rfl
+
+-- instance : has_coe 
+-- instance : can_lift
+
+-- TODO: coercion to and from regular_curve2 and regular_curve3 to regular_curve
 -- TODO: if a proposition is true for regular_curve, then it's true for regular_curve2 and 3.
 
 -- The below line segment, circle and helix are all regular curves on 
@@ -130,6 +135,25 @@ end
 -- I can't write ¬ (regular_curve2) for some reason
 example : (regular_curve2 φ₄ (-8) 8) → false := 
 begin
-  rintro ⟨h1, h2⟩, 
+  rintro ⟨h, -⟩,
+  have := (cont_diff_on.differentiable_on h le_top 0 (by norm_num)).snd,
+  dsimp at this,
+  -- Goal: prove false from a proof that abs is differentiable at 0
   sorry,
 end
+
+example : (regular_curve2 φ₅ (-1) 1) → false :=
+begin
+  rintro ⟨-, h⟩, 
+  specialize h 0 (by norm_num),
+  simp only [ne.def, norm_eq_zero] at h,
+  rw [differentiable_at.fderiv_prod (differentiable_const (0 : ℝ) (0 : ℝ)) (differentiable.pow differentiable_id' 2 0)] at h,
+  rw fun_like.ext_iff at h,
+  push_neg at h,
+  obtain ⟨n, hn⟩ := h,
+  simp only [fderiv_const, pi.zero_apply, continuous_linear_map.prod_apply, continuous_linear_map.zero_apply, ne.def,
+  prod.mk_eq_zero, eq_self_iff_true, true_and] at hn,
+  -- prove false from a proof that the deriv of x^2 is not 0 at 0
+  sorry,
+end
+
