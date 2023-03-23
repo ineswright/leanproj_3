@@ -9,26 +9,17 @@ example (n : ℕ) : euclidean_space ℝ (fin n) = (fin n → ℝ) := rfl
 example (n : ℕ) : (ℝ → euclidean_space ℝ (fin n)) = (ℝ → (fin n → ℝ)) := rfl
 
 structure regular_curve (n : ℕ) (f : ℝ → euclidean_space ℝ (fin n)) (a b : ℝ) :=
-( cont_diff := cont_diff_on ℝ ⊤ f (set.Icc a b) )
-( nonneg_deriv := ∀ t : ℝ, t ∈ set.Icc a b → norm (fderiv ℝ f t) ≠ 0 )
+( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
+( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 )
 
 -- Otherwise it considers it a Type! Then you can't write ¬ regular_curve2 ...
 structure regular_curve2 (f : ℝ → ℝ × ℝ) (a b : ℝ) : Prop :=
-( cont_diff : cont_diff_on ℝ ⊤ f (set.Icc a b) )
-( nonneg_deriv : ∀ t : ℝ, t ∈ set.Icc a b → norm (fderiv ℝ f t) ≠ 0 ) 
+( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
+( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
 structure regular_curve3 (f : ℝ → ℝ × ℝ × ℝ) (a b : ℝ) : Prop :=
-( cont_diff : cont_diff_on ℝ ⊤ f (set.Icc a b) )
-( nonneg_deriv : ∀ t : ℝ, t ∈ set.Icc a b → norm (fderiv ℝ f t) ≠ 0 ) 
-
--- example (f : ℝ → euclidean_space ℝ (fin 2)) (a b : ℝ) 
---   : regular_curve 2 f a b = regular_curve2 f a b := rfl
-
--- instance : has_coe 
--- instance : can_lift
-
--- TODO: coercion to and from regular_curve2 and regular_curve3 to regular_curve
--- TODO: if a proposition is true for regular_curve, then it's true for regular_curve2 and 3.
+( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
+( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
 -- The below line segment, circle and helix are all regular curves on 
 -- [0, 1], [0, 2π] and [0, 6π] respectively.
@@ -51,7 +42,6 @@ begin
     have hd1 : differentiable ℝ (λ x : ℝ, 2 * x - 1), { differentiability, },
     have hd2 : differentiable ℝ (λ x : ℝ, 3 * x + 2), { differentiability, },
     specialize hd1 t, specialize hd2 t,
-    -- simp only [ne.def, norm_eq_zero],
     rw [differentiable_at.fderiv_prod hd1 hd2],
     rw [fderiv_sub (differentiable_at.const_mul (differentiable_at_id') (2 : ℝ)) (differentiable_at_const (1 : ℝ))],
     rw [fderiv_add ((differentiable_at.const_mul (differentiable_at_id') (3 : ℝ))) (differentiable_at_const (2 : ℝ))],
@@ -92,8 +82,7 @@ begin
         rw real.sin_eq_zero_iff_cos_eq at h1,
         rw h2 at h1,
         apply or.elim h1 zero_ne_one,
-        -- ⊢ (0 : ℝ) = -1 → false
-        sorry,
+        norm_num, -- Thanks Deepro!!!!
       },
       { exact id_ne_zero h3, },
     }, 
@@ -132,6 +121,7 @@ end
 
 @[reducible] def φ₅ : ℝ → ℝ × ℝ := λ x, (0, x^2)
 
+
 -- I can't write ¬ (regular_curve2) for some reason
 example : (regular_curve2 φ₄ (-8) 8) → false := 
 begin
@@ -139,8 +129,23 @@ begin
   have := (cont_diff_on.differentiable_on h le_top 0 (by norm_num)).snd,
   dsimp at this,
   -- Goal: prove false from a proof that abs is differentiable at 0
+  -- There's zero machinery in mathlib to say that the absolute value function ℝ → ℝ 
+  -- is differentiable on (-∞, 0) or (0, ∞) or what it's derivative is
+  -- I suspect the easiest way to do this without dealing with limits and filters
+  -- Would be some kind of congruence along the lines of
+  -- abs(x) = id(x) on [0, ∞) → deriv abs(x) = 1 on [0, ∞)
+  -- abs(x) = -x) on [0, ∞) → deriv abs(x) = -1 on (-∞, 0]
+  -- deriv = 1 and -1 at 0 therefore contradiction
+  -- false.elim 1 ≠ -1 
   sorry,
 end
+
+-- I just can't find the machinery in mathlib for this
+-- There's no power rule for fderivs because that would be .. quite nonsensical
+-- And the equivalence between fderivs and derivs only says they're equal when fderiv .. 1
+-- Not fderiv .. n = deriv * n
+-- And it seemed like using the product rule would be very messy
+lemma squared (t : ℝ) (x : ℝ) : (fderiv ℝ (λ x, x ^ 2) t x) = 2 * t * x := sorry
 
 example : (regular_curve2 φ₅ (-1) 1) → false :=
 begin
@@ -153,7 +158,7 @@ begin
   obtain ⟨n, hn⟩ := h,
   simp only [fderiv_const, pi.zero_apply, continuous_linear_map.prod_apply, continuous_linear_map.zero_apply, ne.def,
   prod.mk_eq_zero, eq_self_iff_true, true_and] at hn,
-  -- prove false from a proof that the deriv of x^2 is not 0 at 0
-  sorry,
+  apply hn,
+  rw [squared, mul_zero, zero_mul],
 end
 
