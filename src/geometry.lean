@@ -10,16 +10,16 @@ example (n : ℕ) : (ℝ → euclidean_space ℝ (fin n)) = (ℝ → (fin n → 
 
 structure regular_curve (n : ℕ) (f : ℝ → euclidean_space ℝ (fin n)) (a b : ℝ) :=
 ( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
-( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 )
+( nezero_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 )
 
 -- Otherwise it considers it a Type! Then you can't write ¬ regular_curve2 ...
 structure regular_curve2 (f : ℝ → ℝ × ℝ) (a b : ℝ) : Prop :=
 ( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
-( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
+( nezero_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
 structure regular_curve3 (f : ℝ → ℝ × ℝ × ℝ) (a b : ℝ) : Prop :=
 ( cont_diff : cont_diff_on ℝ ⊤ f (set.uIcc a b) )
-( nonneg_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
+( nezero_deriv : ∀ t : ℝ, t ∈ set.uIcc a b → norm (fderiv ℝ f t) ≠ 0 ) 
 
 -- The below line segment, circle and helix are all regular curves on 
 -- [0, 1], [0, 2π] and [0, 6π] respectively.
@@ -121,13 +121,18 @@ end
 
 @[reducible] def φ₅ : ℝ → ℝ × ℝ := λ x, (0, x^2)
 
-
--- I can't write ¬ (regular_curve2) for some reason
-example : (regular_curve2 φ₄ (-8) 8) → false := 
+example : ¬ (regular_curve2 φ₄ (-8) 8) := 
 begin
   rintro ⟨h, -⟩,
   have := (cont_diff_on.differentiable_on h le_top 0 (by norm_num)).snd,
   dsimp at this,
+  -- Can't find nontrivially_normed_field (ℝ → ℝ)
+  have : (deriv_within (λ x : ℝ, abs x) (set.Icc 0 1)) 0 = (1 : ℝ), {
+    -- rw deriv_within_congr  
+    sorry,
+  },
+  have : (deriv_within (λ x : ℝ, abs x) (set.Icc (-1) 0)) 0 = (-1 : ℝ), sorry,
+  -- have : unique_diff_on_Icc
   -- Goal: prove false from a proof that abs is differentiable at 0
   -- There's zero machinery in mathlib to say that the absolute value function ℝ → ℝ 
   -- is differentiable on (-∞, 0) or (0, ∞) or what it's derivative is
@@ -140,12 +145,13 @@ begin
   sorry,
 end
 
--- I just can't find the machinery in mathlib for this
--- There's no power rule for fderivs because that would be .. quite nonsensical
--- And the equivalence between fderivs and derivs only says they're equal when fderiv .. 1
--- Not fderiv .. n = deriv * n
--- And it seemed like using the product rule would be very messy
-lemma squared (t : ℝ) (x : ℝ) : (fderiv ℝ (λ x, x ^ 2) t x) = 2 * t * x := sorry
+lemma squared (t : ℝ) (x : ℝ) : (fderiv ℝ (λ x, x ^ 2) t x) = 2 * t * x := 
+begin
+  rw [←mul_one x, ←smul_eq_mul, map_smul, fderiv_deriv],
+  simp only [deriv_pow'', differentiable_at_id', nat.cast_bit0, algebra_map.coe_one, pow_one, deriv_id'', mul_one,
+  algebra.id.smul_eq_mul],
+  ring,
+end
 
 example : (regular_curve2 φ₅ (-1) 1) → false :=
 begin

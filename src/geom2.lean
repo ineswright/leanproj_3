@@ -23,17 +23,29 @@ begin
   unfold tangent_line,
   cont_differentiability,
   -- Goal: fderiv is cont_diff_on set.Ioo
-  -- I don't understand this fucking API why is this so impossible to use
-  have hdcontdiff : cont_diff_on ℝ ⊤ (fderiv_within ℝ f (set.Icc a b) t₀) (set.Ioo a b),
+  -- HELP - is this more trivially true because fderiv ℝ f t₀ is a linear map?
+  -- Is it possible this should be cont_diff of (tangent_line h) and not (tangent_line h t₀)
+  
+  have hdcontdiff : cont_diff_on ℝ ⊤ (fderiv_within ℝ f (set.Ioo a b)) (set.Ioo a b),
   { 
-    -- apply cont_diff_on.fderiv_within h.1 _ (le_top : ⊤ + 1 ≤ ⊤),
-    sorry, -- Goal: unique_diff_on ℝ (set.Icc a b)
+    apply cont_diff_on.fderiv_within (_ : cont_diff_on ℝ ⊤ f (set.Ioo a b)) (unique_diff_on_Ioo a b) le_top,
+    { -- Goal: cont_diff_on ℝ ⊤ f (set.Ioo a b)
+      intros x hx,
+      have := h.1 x (set.Icc_subset_uIcc (set.Ioo_subset_Icc_self hx)),
+      -- Goal: cont_diff_within_at ℝ ⊤ f (set.Ioo a b) x
+
+      -- suffices to prove cont_diff_on ℝ ⊤ f (set.Icc a b) bc subsets but
+      -- HELP doesn't seem to be in mathlib
+      sorry,
+    },
   },
   have hfderiv_eq_fderiv_within : ∀ (x : ℝ), x ∈ set.Ioo a b → (fderiv ℝ f t₀) x = (fderiv_within ℝ f (set.Icc a b) t₀) x,
   { sorry, },
   -- Goal: cont_diff_on ℝ ⊤ (λ (x : ℝ), ⇑(fderiv ℝ f t₀) x) (set.Ioo a b)
-  exact @cont_diff_on.congr_mono ℝ _ _ _ _ _ _ _ (set.Ioo a b) (set.Ioo a b) _ (fderiv ℝ f t₀) 
-    ⊤ hdcontdiff hfderiv_eq_fderiv_within (subset_of_eq rfl),
+  -- apply @cont_diff_on.congr_mono ℝ _ _ _ _ _ _ _ _ (set.Ioo a b) _ _ ⊤ hdcontdiff,
+  -- exact @cont_diff_on.congr_mono ℝ _ _ _ _ _ _ _ (set.Ioo a b) (set.Ioo a b) _ (fderiv ℝ f t₀) 
+  --   ⊤ hdcontdiff hfderiv_eq_fderiv_within (subset_of_eq rfl),
+  sorry,
 end
 
 def is_parametrisation {n : ℕ} {a b c d : ℝ} {ψ : ℝ → euclidean_space ℝ (fin n)} {φ : ℝ → euclidean_space ℝ (fin n)}
@@ -68,9 +80,11 @@ noncomputable def length3 {f : ℝ → ℝ × ℝ × ℝ} {a b : ℝ} (h : regul
   := ∫ t in a..b, norm (fderiv ℝ f t) 
 
 -- Why is this not in Mathlib ??
+-- Help
 lemma fderiv_deriv_general {f : ℝ → ℝ} {x t : ℝ} : (fderiv ℝ f x : ℝ →L[ℝ] ℝ) t = (deriv f x) * t :=
 begin
   rw ←fderiv_deriv,
+  -- linear_map.map_smul_of_tower
   -- rw linear_map.coe_mul 
   sorry,
 end
@@ -144,6 +158,30 @@ begin
   exact eq_of_le_of_not_lt hf (not_lt_of_ge this.1),
 end
 
+lemma image_f_eq_uIcc {f : ℝ → ℝ} {a b c d : ℝ} {hfim : f '' {c, d} = {a, b}} (hfderiv : ∀ t, fderiv ℝ f t ≠ 0)
+  (hfcderiv : continuous (fderiv ℝ f))
+  : f '' (set.uIcc c d) = set.uIcc a b :=
+begin
+  rw set.ext_iff,
+  intros x,
+  split; intros hx, 
+  { -- Goal: x ∈ f '' set.uIcc c d → x ∈ set.uIcc a b
+    obtain ⟨y, hy, rfl⟩ := hx,
+    by_contra,
+    -- We should find that if f y ∉ set.uIcc a b, then the deriv from min (c d) to f y is neg/pos
+    -- and the deriv from f y to max (c d) is pos/neg 
+    -- by IVT on the derivative (which is continuous by assumption)
+    -- we find somewhere where the derivative is 0. Contradiction by hfderiv
+    sorry,
+  },
+  { -- Goal: x ∈ set.uIcc a b → x ∈ f '' set.uIcc c d
+    -- f is continuous as it has a derivative
+    -- then this is an application of the IVT on f
+    sorry,
+  },
+
+end
+
 -- The number of times I was trying to prove something false here :sick:
 lemma something {f : ℝ → ℝ} {a b c d : ℝ} (hfa : f c = a) (hf : f '' {c, d} = {a, b}) : f d = b :=
 begin
@@ -212,9 +250,14 @@ begin
 end
 
 -- Maths proof in Kevin's discord
+-- Help
 lemma norm_deriv_eq_norm_deriv_at_one {n : ℕ} {f : ℝ → euclidean_space ℝ (fin n)} {s : ℝ} 
-  : ‖fderiv ℝ f s‖ = ‖fderiv ℝ f s 1‖ := sorry
-
+  : ‖fderiv ℝ f s‖ = ‖fderiv ℝ f s 1‖ := 
+begin
+  rw continuous_linear_map.norm_def,
+  -- there is also a ≤ unit norm
+  sorry,
+end
 
 -- This is an application of the chain rule
 lemma deriv_of_parametrisation {n : ℕ} {a b c d : ℝ} {hab : a < b} {hcd : c < d} {φ ψ : ℝ → euclidean_space ℝ (fin n)} 
@@ -245,17 +288,12 @@ begin
     := @linear_map.map_smul_of_tower ℝ (euclidean_space ℝ (fin n)) _ _ _ ℝ _ _ _ _ _ _
     (fderiv ℝ φ (f s)) (fderiv ℝ f s 1) 1,
   rw ←comp_smul,
-  
-  -- rw smul_one,
-  -- rw linear_map.compatible_smul_def,
-  -- Why does the coe_smul not deal with compositions ????
-  -- rw ←linear_map.smul_eq_comp,
-  --- linear map compatible_smul, smul_apply, smul_comp, comp_smul, mul_eq_comp
-  -- Goal: ‖⇑(fderiv ℝ φ (f s)) (⇑(fderiv ℝ f s) 1)‖ = ‖⇑(fderiv ℝ f s) 1 • ⇑(fderiv ℝ φ (f s)) 1‖
-  sorry,
+  -- Thanks Kevin for the last two lines
+  rw [fderiv_deriv],
+  simp only [algebra.id.smul_eq_mul, mul_one],
 end
 
-lemma length_invariant_under_parameterisations' {n : ℕ} {a b c d : ℝ} (hab : a < b) (hcd : c < d) {ψ : ℝ → euclidean_space ℝ (fin n)} 
+lemma length_invariant_under_parameterisations' {n : ℕ} {a b c d : ℝ} {ψ : ℝ → euclidean_space ℝ (fin n)} 
   {φ : ℝ → euclidean_space ℝ (fin n)} {h1 : regular_curve n ψ c d} {h2 : regular_curve n φ a b} (h3 : is_parametrisation h1 h2) 
   : length h1 = length h2 :=
 begin
@@ -267,16 +305,29 @@ begin
       { -- Goal: ∀ (x : ℝ), x ∈ set.uIcc c d → has_deriv_at f ‖fderiv ℝ f x‖ x
         intros x hx,
         rw has_deriv_at_iff_has_fderiv_at,
+        
         sorry,
       },
-      sorry,
+      { -- Goal: continuous_on (λ (x : ℝ), ‖fderiv ℝ f x‖) (set.uIcc c d)
+        apply continuous_on.comp (continuous.continuous_on continuous_norm),
+        have := hf.1,
+        have := cont_diff_on.continuous_on_deriv_within hf.1,
+
+        -- HELP- this demonstrates the open set closed set problems...
+        -- Goal: continuous_on (λ (x : ℝ), fderiv ℝ f x) (set.uIcc c d)
+        -- but it's only possible to prove continuous_on ... (set.uIoo c d)
+        -- should I make my assumption cont_diff everywhere ??
+        sorry, -- continuous_on fderiv
+        sorry, sorry, -- some other meta nonsense
+      },
+      -- Goal: continuous (λ (x : ℝ), ‖fderiv ℝ φ x‖)
+      -- Again, same problem as above, would need cont_diff everywhere
       sorry,
     },
   sorry,
 end
 
--- I think I need c ≤ d and a ≤ b 
-lemma length_invariant_under_parameterisations {n : ℕ} {a b c d : ℝ} (hab : a < b) (hcd : c < d) {ψ : ℝ → euclidean_space ℝ (fin n)} 
+lemma length_invariant_under_parameterisations {n : ℕ} {a b c d : ℝ} {ψ : ℝ → euclidean_space ℝ (fin n)} 
   {φ : ℝ → euclidean_space ℝ (fin n)} {h1 : regular_curve n ψ c d} {h2 : regular_curve n φ a b} (h3 : is_parametrisation h1 h2) 
   : length h1 = length h2 :=
 begin
@@ -317,3 +368,16 @@ end
 -- lemma, every regular curve can be parameterised by arc length
 
 -- THIS IS THE END OF CHAPTER 1!
+
+example {s1 s2 : set ℝ} {h : s2 ⊆ s1 } (f : ℝ → ℝ) (hc : differentiable_on ℝ f s1) 
+  : differentiable_on ℝ f s2 :=
+begin
+  exact differentiable_on.mono hc h,
+end
+
+example {s1 s2 : set ℝ} {h : s2 ⊆ s1 } (f : ℝ → ℝ) (hc : cont_diff_on ℝ ⊤ f s1) 
+  : cont_diff_on ℝ ⊤ f s2 :=
+begin
+  exact cont_diff_on.mono hc h,
+end
+

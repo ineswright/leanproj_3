@@ -2,3 +2,26 @@
 - do cont_differentiability in differentiability
 - MAYBE: modify cont_diff to solve things in cont_diff as well as cont_diff_on
 - think about a tactic to calculate derivatives 
+
+
+WHY THIS ISN'T GOING TO WORK
+- machinery missing in mathlib. 
+    - integrals defined on uIccs, but cont_diff gives continuous and differentiable on open sets within the set given
+    - i have my own uIoo now but like .. ?
+    - nothing about derivatives of abs - no idea how to prove this in mathlib
+    - 
+    - can't find the trick in mathlib to convert between composition of linear maps and smuls 
+        there's a coe_mul but not coe_smul
+- getting the composition in and out of the derivative and norms seems crazy hard 
+    - so then can't apply change of variables correctly
+- fderiv_deriv doesn't give the multiplication - need the linear map trick to prove this
+- I think deriv_of_parametrisation may actually not be true ??? the way I've defined it at least
+- more generally, the issues with open sets within stuff for integrability... either the geom cw notes are wrong
+    or mathlib is doing something too strong and integrability should be on an open set
+- uniqueness of derivatives ???? since when weren't derivatives unique what the hell? Where in mathlib does it 
+    have derivatives on \R are unique at least
+- for differentiable_on, cont_diff_on, etc there doesn't seem to be a suffices to prove for a larger set
+    there's some kind of insert lemma
+
+
+-- y3 groups- are second, third, fourth isomorphism theorems sufficiently y3 maths
