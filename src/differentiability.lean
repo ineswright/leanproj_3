@@ -1,6 +1,7 @@
 /-
-This tactic is mostly a copy of the continuity tactic by Reid Barton,
+This tactic is mostly derived from the continuity tactic by Reid Barton,
 with some modifications from the measurability tactic by Rémy Degenne
+See writeup for explicit details
 -/
 import tactic.auto_cases
 import tactic.tidy
@@ -21,105 +22,8 @@ Mark lemmas with `@[differentiability]` to add them to the set of lemmas
 used by `differentiability`.
 -/
 
-/-- User attribute used to mark tactics used by `differentiability`. 
-Attributes used by continuity:
-[continuous_multilinear_map.coe_continuous,
- linear_isometry.continuous,
- semilinear_isometry_class.continuous,
- continuous_algebra_map,
- affine_map.homothety_continuous,
- affine_map.line_map_continuous,
- path.truncate_const_continuous_family,
- path.truncate_continuous_family,
- path.continuous_trans,
- continuous.path_trans,
- path.trans_continuous_family,
- path.continuous_uncurry_extend_of_continuous_family,
- path.continuous_symm,
- path.symm_continuous_family,
- path.continuous_extend,
- continuous.path_eval,
- path.continuous,
- unit_interval.continuous_symm,
- continuous.Icc_extend',
- continuous_proj_Icc,
- continuous_linear_equiv.continuous,
- continuous_linear_equiv.continuous_inv_fun,
- continuous_linear_equiv.continuous_to_fun,
- continuous_linear_map.continuous,
- continuous.sqrt,
- real.continuous_sqrt,
- continuous.edist,
- ennreal.continuous_pow,
- continuous_nnnorm,
- continuous_nnnorm',
- continuous_norm,
- continuous_norm',
- continuous.zpow₀,
- continuous.div,
- continuous.inv₀,
- continuous.div_const,
- continuous_abs,
- continuous.star,
- continuous.dist,
- continuous_dist,
- continuous.max,
- continuous.min,
- continuous.sub,
- continuous.div',
- continuous.zsmul,
- continuous.zpow,
- continuous_zsmul,
- continuous_zpow,
- continuous.inv,
- continuous_finset_sum,
- continuous_finset_prod,
- continuous_multiset_sum,
- continuous_multiset_prod,
- continuous.nsmul,
- continuous_nsmul,
- continuous_map.continuous_set_coe,
- continuous_map_class.map_continuous,
- continuous.vadd,
- continuous.const_vadd,
- continuous.const_smul,
- uniform_equiv.continuous_symm,
- uniform_equiv.continuous,
- add_opposite.continuous_op,
- mul_opposite.continuous_op,
- add_opposite.continuous_unop,
- mul_opposite.continuous_unop,
- homeomorph.continuous_symm,
- homeomorph.continuous,
- continuous.connected_components_lift_continuous,
- connected_components.continuous_coe,
- continuous_ulift_up,
- continuous_ulift_down,
- continuous.sigma_map,
- continuous_sigma,
- continuous_sigma_mk,
- continuous_single,
- continuous_mul_single,
- continuous_update,
- continuous_apply_apply,
- continuous_apply,
- continuous_quot_lift,
- continuous_quot_mk,
- continuous.cod_restrict,
- continuous.subtype_mk,
- continuous_subtype_val,
- continuous.sum_map,
- continuous.sum_elim,
- continuous_inr,
- continuous_inl,
- continuous.prod.mk_left,
- continuous.prod.mk,
- continuous.prod_mk,
- continuous_top,
- continuous_bot,
- continuous_induced_dom,]
+/-- User attribute used to mark tactics used by `differentiability`. -/
 
--/
 @[user_attribute]
 meta def differentiability : user_attribute :=
 { name := `differentiability,
@@ -133,9 +37,8 @@ attribute [differentiability]
   differentiable_const
   differentiable.mul
   differentiable.div
-  -- Need some division something. ?
   differentiable.smul
-  differentiable.pow -- for natural powers
+  differentiable.pow
   differentiable.add
   differentiable.sub
   differentiable.neg
@@ -155,7 +58,6 @@ attribute [differentiability]
   differentiable.ccos
   differentiable.csinh
   differentiable.ccosh
-  -- differentiable.comp
   
 namespace tactic
 /--
@@ -164,16 +66,16 @@ Tactic to apply `differentiable.comp` when appropriate.
 Applying `differentiable.comp` is not always a good idea, so we have some
 extra logic here to try to avoid bad cases.
 
-* If the function we're trying to prove continuous is actually
+* If the function we're trying to prove differentiable is actually
   constant, and that constant is a function application `f z`, then
-  continuous.comp would produce new goals `differentiable f`, `continuous
+  differentiable.comp would produce new goals `differentiable f`, `differentiable
   (λ _, z)`, which is silly. We avoid this by failing if we could
-  apply continuous_const.
+  apply differentiable_const.
 
-* continuous.comp will always succeed on `differentiable (λ x, f x)` and
+* differentiable.comp will always succeed on `differentiable (λ x, f x)` and
   produce new goals `differentiable (λ x, x)`, `differentiable f`. We detect
   this by failing if a new goal can be closed by applying
-  continuous_id.
+  differentiable_id.
 -/
 meta def apply_differentiable.comp : tactic unit :=
 `[fail_if_success { exact differentiable_const };

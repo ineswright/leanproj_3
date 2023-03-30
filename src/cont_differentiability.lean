@@ -24,7 +24,7 @@ used by `cont_differentiability`.
 @[user_attribute]
 meta def cont_differentiability : user_attribute :=
 { name := `cont_differentiability,
-  descr := "lemmas usable to prove differentiable" }
+  descr := "lemmas usable to prove continuously differentiable" }
 
 -- Mark some differentiability lemmas already defined in `algebra.calculus.fderiv`
 -- and `analysis.special_functions. ...`
@@ -40,17 +40,6 @@ attribute [cont_differentiability]
   cont_diff_on.fst
   cont_diff_on.snd
   cont_diff_on.smul
-  -- It can't even find this for some reason ?
-  -- cont_diff_sin
-  -- -- Need some division something. ?
-  -- differentiable.prod
-  -- differentiable.sum
-  -- differentiable_pi
-  -- differentiable.exp
-  -- differentiable.cexp
-  -- differentiable.log
-  -- differentiable.sin
-  -- differentiable.cos
 
 @[cont_differentiability] lemma cont_diff_on_id' {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : set E} 
@@ -65,16 +54,16 @@ Tactic to apply `cont_diff_on.comp` when appropriate.
 Applying `cont_diff_on.comp` is not always a good idea, so we have some
 extra logic here to try to avoid bad cases.
 
-* If the function we're trying to prove continuous is actually
+* If the function we're trying to prove continuously differentiable is actually
   constant, and that constant is a function application `f z`, then
-  continuous.comp would produce new goals `cont_diff_on _ _ f _`, `continuous
+  cont_diff_on.comp would produce new goals `cont_diff_on _ _ f _`, `cont_diff_on
   (λ _, z)`, which is silly. We avoid this by failing if we could
-  apply continuous_const.
+  apply cont_diff_on_const.
 
-* continuous.comp will always succeed on `cont_diff_on _ _ (λ x, f x) _` and
+* cont_diff_on.comp will always succeed on `cont_diff_on _ _ (λ x, f x) _` and
   produce new goals `cont_diff_on _ _ (λ x, x) _`, `cont_diff_on _ _ f _`. We detect
   this by failing if a new goal can be closed by applying
-  continuous_id.
+  cont_diff_on_id.
 -/
 meta def apply_cont_diff_on.comp : tactic unit :=
 `[fail_if_success { exact cont_diff_const };
