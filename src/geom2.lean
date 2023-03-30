@@ -7,53 +7,60 @@ import geometry
 import analysis.calculus.mean_value
 import unordered_interval
 
--- missing 'noncomputable' modifier, definition 'tangent_line' depends on 'pi_Lp.normed_add_comm_group'
+/-- The tangent line to a regular curve is the straight line which
+  best approximates it at a point -/
 noncomputable def tangent_line {n : ℕ} {f : ℝ → euclidean_space ℝ (fin n)} {a b : ℝ} (h : regular_curve n f a b) (t₀ : ℝ)
  : ℝ → euclidean_space ℝ (fin n) := λ t, f t₀ + ((fderiv ℝ f t₀) t)
 
+/-- An equivalent definition of tangent lines for curves in ℝ × ℝ -/
 noncomputable def tangent_line2 {f : ℝ → ℝ × ℝ} {a b : ℝ} (h : regular_curve2 f a b) (t₀ : ℝ) : ℝ → ℝ × ℝ := 
   λ t, f t₀ + ((fderiv ℝ f t₀) t)
 
+/-- An equivalent definition of tangent lines for curves in ℝ × ℝ × ℝ -/
 noncomputable def tangent_line3 {f : ℝ → ℝ × ℝ × ℝ} {a b : ℝ} (h : regular_curve3 f a b) (t₀ : ℝ) : ℝ → ℝ × ℝ × ℝ := 
   λ t, f t₀ + ((fderiv ℝ f t₀) t)
 
+-- I'm trying to prove something nonsensical here
+-- I don't even know whether I'm trying to prove tangent_line h is cont_diff 
+-- or tangent_line h t₀
+-- I have two halves of very different proofs here
+-- TODO: CLEAN UP
 lemma is_smooth_tangent_map {n : ℕ} {f : ℝ → euclidean_space ℝ (fin n)} {a b : ℝ} (h : regular_curve n f a b) {t₀ : ℝ}
   : cont_diff_on ℝ ⊤ (tangent_line h t₀) (set.Ioo a b) := 
 begin
   unfold tangent_line,
   cont_differentiability,
-  -- Goal: fderiv is cont_diff_on set.Ioo
-  -- HELP - is this more trivially true because fderiv ℝ f t₀ is a linear map?
-  -- Is it possible this should be cont_diff of (tangent_line h) and not (tangent_line h t₀)
-  
-  have hdcontdiff : cont_diff_on ℝ ⊤ (fderiv_within ℝ f (set.Ioo a b)) (set.Ioo a b),
-  { 
-    apply cont_diff_on.fderiv_within (_ : cont_diff_on ℝ ⊤ f (set.Ioo a b)) (unique_diff_on_Ioo a b) le_top,
-    { -- Goal: cont_diff_on ℝ ⊤ f (set.Ioo a b)
-      intros x hx,
-      have := h.1 x (set.Icc_subset_uIcc (set.Ioo_subset_Icc_self hx)),
-      -- Goal: cont_diff_within_at ℝ ⊤ f (set.Ioo a b) x
-
-      -- suffices to prove cont_diff_on ℝ ⊤ f (set.Icc a b) bc subsets but
-      -- HELP doesn't seem to be in mathlib
-      sorry,
-    },
-  },
-  have hfderiv_eq_fderiv_within : ∀ (x : ℝ), x ∈ set.Ioo a b → (fderiv ℝ f t₀) x = (fderiv_within ℝ f (set.Icc a b) t₀) x,
+  have hdcontdiff0 : cont_diff_on ℝ ⊤ (fderiv_within ℝ f (set.Ioo a b) t₀) (set.Ioo a b),
   { sorry, },
-  -- Goal: cont_diff_on ℝ ⊤ (λ (x : ℝ), ⇑(fderiv ℝ f t₀) x) (set.Ioo a b)
-  -- apply @cont_diff_on.congr_mono ℝ _ _ _ _ _ _ _ _ (set.Ioo a b) _ _ ⊤ hdcontdiff,
-  -- exact @cont_diff_on.congr_mono ℝ _ _ _ _ _ _ _ (set.Ioo a b) (set.Ioo a b) _ (fderiv ℝ f t₀) 
-  --   ⊤ hdcontdiff hfderiv_eq_fderiv_within (subset_of_eq rfl),
+  have hdcontdiff : cont_diff_on ℝ ⊤ (fderiv_within ℝ f (set.Ioo a b)) (set.Ioo a b),
+  { apply cont_diff_on.fderiv_within (cont_diff_on.mono h.1 _) (unique_diff_on_Ioo a b) le_top,
+    exact set.subset.trans (set.Ioo_subset_uIoo a b) (set.uIoo_subset_uIcc _ _),
+  },
+  -- apply cont_diff_on.congr,
+
+  -- This would be the final part to prove
+  have hfderiv_eq_fderiv_within : ∀ (x : ℝ), x ∈ set.Ioo a b → (fderiv ℝ f t₀) x = (fderiv_within ℝ f (set.Icc a b) t₀) x,
+  {
+    intros x hx,
+    have := unique_diff_on_Ioo a b,
+    
+    sorry, },
+  apply cont_diff_on.congr _ hfderiv_eq_fderiv_within,
+  dsimp,
+  -- Goal: cont_diff_on ℝ ⊤ ⇑(fderiv_within ℝ f (set.Icc a b) t₀) (set.Ioo a b)
+
   sorry,
 end
 
+/-- ψ is a parametrisation of φ if there exists some f such that φ ∘ f = ψ 
+  under some additional conditions -/
 def is_parametrisation {n : ℕ} {a b c d : ℝ} {ψ : ℝ → euclidean_space ℝ (fin n)} {φ : ℝ → euclidean_space ℝ (fin n)}
   (h1 : regular_curve n ψ c d) (h2 : regular_curve n φ a b) 
   := ∃ f : ℝ → ℝ, cont_diff_on ℝ ⊤ f (set.uIcc c d) ∧ f '' {c, d} = {a, b} ∧ 
     (∀ t : ℝ, t ∈ set.uIcc c d → norm (fderiv ℝ f t) ≠ 0) ∧
     (∀ t, t ∈ set.uIcc c d → φ ∘ f = ψ)
 
+/-- f is a specific parametrisation for ψ of φ if it witnesses is_parametrisation -/
 def parametrises {n : ℕ} {a b c d : ℝ} {ψ : ℝ → euclidean_space ℝ (fin n)} {φ : ℝ → euclidean_space ℝ (fin n)}
   (h1 : regular_curve n ψ c d) (h2 : regular_curve n φ a b) (f : ℝ → ℝ) :=
   cont_diff_on ℝ ⊤ f (set.uIcc c d) ∧ f '' {c, d} = {a, b} ∧ 
@@ -69,15 +76,21 @@ begin
   exact hp,
 end 
 
+/-- The length of a regular curve is defined to be the standard integral
+of the norm of it's derivative -/
 noncomputable def length {n : ℕ} {f : ℝ → euclidean_space ℝ (fin n)} {a b : ℝ} (h : regular_curve n f a b) : ℝ 
   := ∫ t in a..b, norm (fderiv ℝ f t)  
 
--- TODO: replace this with coercion to euclidean_space of length
+/-- An equivalent definition of length for curves in ℝ × ℝ -/
 noncomputable def length2 {f : ℝ → ℝ × ℝ} {a b : ℝ} (h : regular_curve2 f a b) : ℝ 
   := ∫ t in a..b, norm (fderiv ℝ f t) 
 
+/-- An equivalent definition of length for curves in ℝ × ℝ × ℝ -/
 noncomputable def length3 {f : ℝ → ℝ × ℝ × ℝ} {a b : ℝ} (h : regular_curve3 f a b) : ℝ 
   := ∫ t in a..b, norm (fderiv ℝ f t) 
+
+-- TODO: COULD DEFINE ARC PARAMETRISED AND THEN PROVE THAT 
+-- THE LENGTH = B - A ?????
 
 -- Why is this not in Mathlib ??
 -- Help
@@ -142,20 +155,6 @@ begin
   dsimp at hs,
   simp only [one_mul] at hs,
   exact hs,
-end
-
--- I asked something about how to prove a modified version of the below lemma in a class and this is how Kevin did it
-lemma kevins_version_of_something (f : ℝ → ℝ) (hf : monotone f) (a b c d : ℝ) (hab : a ≤ b) (h : f '' set.Icc c d = set.Icc a b) :
-  f c = a :=
-begin
-  have foo : a ∈ set.Icc a b := set.left_mem_Icc.mpr hab,
-  rw ← h at foo,
-  rcases foo with ⟨x, hx1, hx2⟩,
-  rw set.mem_Icc at hx1,
-  specialize hf hx1.1,
-  rw hx2 at hf,
-  have : f c ∈ set.Icc a b := (set.ext_iff.mp h (f c)).mp ⟨c, ⟨le_of_eq rfl, (le_trans hx1.1 hx1.2)⟩, rfl⟩,
-  exact eq_of_le_of_not_lt hf (not_lt_of_ge this.1),
 end
 
 lemma image_f_eq_uIcc {f : ℝ → ℝ} {a b c d : ℝ} {hfim : f '' {c, d} = {a, b}} (hfderiv : ∀ t, fderiv ℝ f t ≠ 0)
@@ -277,13 +276,12 @@ begin
     rw mem_nhds_iff_exists_Ioo_subset,
     refine ⟨c ⊓ d, c ⊔ d, hs, set.uIoo_subset_uIcc c d⟩,
   },
-  -- Worked before changing stuff to uIcc
   rw ←(hfcomp s (set.uIoo_subset_uIcc _ _ hs)),
   rw [fderiv.comp s hdiffphi hdifff],
   dsimp,
   rw [←real.norm_eq_abs _],
   rw ←norm_smul (fderiv ℝ f s 1) (fderiv ℝ φ (f s) 1),
-  -- God it was a total nightmare to manage to rw this..
+  -- Rw can't manage this unless I specify the exact type..
   have comp_smul : (fderiv ℝ φ (f s)) ((fderiv ℝ f s) 1 • 1) = (fderiv ℝ f s) 1 • (fderiv ℝ φ (f s)) 1
     := @linear_map.map_smul_of_tower ℝ (euclidean_space ℝ (fin n)) _ _ _ ℝ _ _ _ _ _ _
     (fderiv ℝ φ (f s)) (fderiv ℝ f s 1) 1,
@@ -368,16 +366,4 @@ end
 -- lemma, every regular curve can be parameterised by arc length
 
 -- THIS IS THE END OF CHAPTER 1!
-
-example {s1 s2 : set ℝ} {h : s2 ⊆ s1 } (f : ℝ → ℝ) (hc : differentiable_on ℝ f s1) 
-  : differentiable_on ℝ f s2 :=
-begin
-  exact differentiable_on.mono hc h,
-end
-
-example {s1 s2 : set ℝ} {h : s2 ⊆ s1 } (f : ℝ → ℝ) (hc : cont_diff_on ℝ ⊤ f s1) 
-  : cont_diff_on ℝ ⊤ f s2 :=
-begin
-  exact cont_diff_on.mono hc h,
-end
 
