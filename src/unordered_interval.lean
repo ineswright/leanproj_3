@@ -1,4 +1,4 @@
--- Copied from the version in Mathlib
+-- Very similar to the equivalent file in Mathlib defining set.uIcc
 import order.bounds.basic
 import data.set.intervals.basic
 import data.set.intervals.unordered_interval
