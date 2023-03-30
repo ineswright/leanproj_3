@@ -7,6 +7,7 @@ open real
 noncomputable def φ₁ : ℝ → ℝ × ℝ × ℝ := 
 λ x, (real.sin x, x^4+37*x^2+1, abs x)
 
+-- Manual proof found by Kevin Buzzard or Heather from Zulip - I don't remember
 example : cont_diff_on ℝ ⊤ φ₁ (set.Icc 0 1) :=
 begin
   apply cont_diff_on.prod,
@@ -30,13 +31,9 @@ end
 
 example : cont_diff_on ℝ ⊤ φ₁ (set.Icc 0 1) :=
 begin
-  -- tactic can't figure out to apply this first ? Perhaps because
-  -- it's a product of many ?
+  -- Not sure why this first cont_diff_on.prod can't be done by the tactic
   apply cont_diff_on.prod,
-  cont_differentiability, 
-  -- adding cont_diff_on.congr to the tactic makes the first goal fail,
-  -- because it transforms into ⊢ sin x = id x,
-  -- although it successfully works on the second
+  cont_differentiability,
     { exact cont_diff.cont_diff_on cont_diff_sin, },
     { apply cont_diff_on.congr cont_diff_on_id,
       intros x hx, exact abs_of_nonneg hx.1, },  

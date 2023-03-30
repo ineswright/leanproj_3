@@ -24,13 +24,11 @@ example (f g h : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable �
   := 
 begin
   differentiability,
-  -- issue with having written the algorithm this way
   -- Goal: differentiable ℝ (λ (x : ℝ), (f ∘ g) x)
-  -- decomposes into
+  -- Cannot be decomposed by the tactic as one of the sub functions is the identity
+  -- therefore we have to proceed manually
   apply differentiable.comp,
   -- Goals: differentiable ℝ (f ∘ g) and differentiable ℝ (λ (x : ℝ), x)
-  -- which fails given the algorithm
-  -- should I raise this with Zulip ?
   exact differentiable.comp hf hg,
   exact differentiable_id,
 end
@@ -54,10 +52,9 @@ example (f : ℝ → ℝ) (hf : differentiable ℝ f)
 example (f : ℝ → ℝ) (hf : differentiable ℝ f) 
   : differentiable ℝ (λ x, real.exp (f x)) := by differentiability
 
--- Can even apply other necessary hypothesis
+-- The tactic can even apply other necessary hypothesis
 example (f : ℝ → ℝ) (hf : differentiable ℝ f) (hfn0 : ∀ x, f x ≠ 0)
   : differentiable ℝ (λ x, real.log (f x)) := by differentiability
 
--- TODO: figure out how the make this work
--- example (f g : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g)
---   : differentiable ℝ (λ x, f x / (g x)) := by differentiability
+example (f g : ℝ → ℝ) (hf : differentiable ℝ f) (hg : differentiable ℝ g) (h : ∀ x, g x ≠ 0)
+  : differentiable ℝ (λ x, f x / (g x)) := by differentiability
