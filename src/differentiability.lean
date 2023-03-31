@@ -1,7 +1,7 @@
 /-
 This tactic is mostly derived from the continuity tactic by Reid Barton,
 with some modifications from the measurability tactic by Rémy Degenne
-See writeup for explicit details
+See writeup for details
 -/
 import tactic.auto_cases
 import tactic.tidy

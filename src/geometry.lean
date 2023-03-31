@@ -80,7 +80,7 @@ begin
       rintro (h2 | h3),
       { rw [real.sin_eq_zero_iff_cos_eq, h2] at h1,
         apply or.elim h1 zero_ne_one,
-        -- Thanks Deepro, this tactic handles all the horrible coercions I couldn't figure out!
+        -- Thanks Deepro, this tactic handles all the coercions I couldn't figure out!
         norm_num, },
       { exact id_ne_zero h3, },
     }, 
@@ -105,13 +105,15 @@ begin
     { -- Goal: ¬fderiv ℝ (λ (x : ℝ), (real.sin x, x)) t = 0
       -- h1 : real.sin t = 0
       intro h,
-      rw [differentiable_at.fderiv_prod (differentiable.sin differentiable_id' t) (differentiable_id' t)] at h,
+      rw [differentiable_at.fderiv_prod (differentiable.sin differentiable_id' t) 
+        (differentiable_id' t)] at h,
       rw [fderiv_sin (differentiable_id' t)] at h,
       rw [fderiv_id'] at h,
       rw fun_like.ext_iff at h,
       specialize h real.pi,
-      simp only [continuous_linear_map.prod_apply, continuous_linear_map.coe_smul', continuous_linear_map.coe_id', pi.smul_apply,
-        id.def, algebra.id.smul_eq_mul, continuous_linear_map.zero_apply, prod.mk_eq_zero, mul_eq_zero] at h,
+      simp only [continuous_linear_map.prod_apply, continuous_linear_map.coe_smul', 
+        continuous_linear_map.coe_id', pi.smul_apply, id.def, algebra.id.smul_eq_mul, 
+        continuous_linear_map.zero_apply, prod.mk_eq_zero, mul_eq_zero] at h,
       exact real.pi_ne_zero h.2, },
     { -- Goal: ¬fderiv ℝ (λ (x : ℝ), (real.sin x, x)) t = 0
       -- h2 : continuous_linear_map.id ℝ ℝ = 0
@@ -124,21 +126,15 @@ end
 
 @[reducible] def φ₅ : ℝ → ℝ × ℝ := λ x, (0, x^2)
 
--- TODO: CLEAN
 lemma abs_not_differentiable_at_zero : ¬ differentiable_at ℝ (λ x : ℝ, |x|) 0 :=
 begin
   sorry,
-  -- have : (deriv_within (λ x : ℝ, abs x) (set.Icc 0 1)) 0 = (1 : ℝ), {
-    -- rw deriv_within_congr  
-    -- sorry,
-  -- },
-  -- have : (deriv_within (λ x : ℝ, abs x) (set.Icc (-1) 0)) 0 = (-1 : ℝ), sorry,
-  
   -- Goal: prove false from a proof that abs is differentiable at 0
-  -- There's zero machinery in mathlib to say that the absolute value function ℝ → ℝ 
-  -- is differentiable on (-∞, 0) or (0, ∞) or what it's derivative is
+  -- There's zero machinery in mathlib that I can find to say that the absolute 
+  -- value function ℝ → ℝ is differentiable on (-∞, 0) or (0, ∞) or what it's derivative is 
+  -- or that it's not differentiable at 0.
   -- I suspect the easiest way to do this without dealing with limits and filters
-  -- Would be some kind of congruence along the lines of
+  -- Would be some kind of congruence (deriv_within_congr) along the lines of
   -- abs(x) = id(x) on [0, ∞) → deriv abs(x) = 1 on [0, ∞)
   -- abs(x) = -x) on [0, ∞) → deriv abs(x) = -1 on (-∞, 0]
   -- deriv = 1 and -1 at 0 therefore contradiction

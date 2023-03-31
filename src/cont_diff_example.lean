@@ -31,7 +31,6 @@ end
 
 example : cont_diff_on ℝ ⊤ φ₁ (set.Icc 0 1) :=
 begin
-  -- Not sure why this first cont_diff_on.prod can't be done by the tactic
   apply cont_diff_on.prod,
   cont_differentiability,
     { exact cont_diff.cont_diff_on cont_diff_sin, },
